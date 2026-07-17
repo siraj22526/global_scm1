@@ -1,58 +1,208 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🌐 Global Supply Chain Risk Intelligence Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![Laravel Version](https://img.shields.io/badge/Laravel-v13.x-red.svg)](https://laravel.com)
+[![PHP Version](https://img.shields.io/badge/PHP-%5E8.3-blue.svg)](https://php.net)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](file:///d:/ProjekFullStack/global-scm/LICENSE)
+[![Vite](https://img.shields.io/badge/Vite-v8.x-purple.svg)](https://vite.dev)
 
-## About Laravel
+Platform Intelijen Risiko Rantai Pasok Global (Global Supply Chain Risk Intelligence Platform) adalah sistem berbasis web modern yang dirancang untuk melacak, menganalisis, dan memvisualisasikan faktor risiko logistik, cuaca, ekonomi, dan berita global. 
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Sistem ini membantu manajer rantai pasok dalam memantau kesehatan operasional negara-negara mitra dagang melalui indeks risiko komposit yang diperbarui secara dinamis.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🚀 Fitur Utama
 
-## Learning Laravel
+- **Analisis Risiko Multi-Negara**: Dashboard interaktif yang menampilkan tingkat risiko keseluruhan (*Low*, *Medium*, *High*) dengan rincian parameter pendukung.
+- **Peta Interaktif Pelabuhan (Leaflet.js)**: Visualisasi geografis pelabuhan utama di 20 negara lengkap dengan data status operasional, kapasitas kontainer, dan indikator risiko.
+- **Sentiment Analysis Berita Berbasis Leksikon (Lexicon-based)**: Mengunduh berita logistik & perdagangan dunia kemudian menghitung sentimen (*Positive*, *Neutral*, *Negative*) secara dinamis berdasarkan kamus kata yang dikonfigurasi.
+- **Integrasi API Multi-Sumber Terpadu**:
+  - **Open-Meteo API**: Memantau cuaca ekstrem (curah hujan, kecepatan angin, probabilitas badai).
+  - **World Bank API**: Mengambil data indikator ekonomi makro seperti inflasi tahunan.
+  - **GNews API**: Sinkronisasi artikel berita global dan lokal real-time.
+  - **ExchangeRate API**: Melacak fluktuasi nilai tukar mata uang asing terhadap USD.
+  - **REST Countries API**: Sinkronisasi data dasar geografis negara (kapital, bendera, bahasa, kordinat).
+- **Perbandingan Samping-ke-Samping (Side-by-Side Comparison)**: Membandingkan metrik risiko dan ekonomi dari beberapa negara sekaligus untuk mempermudah keputusan logistik alternatif.
+- **Watchlist Kustom**: Menyimpan daftar pantauan negara prioritas (dibatasi maksimal hingga 20 negara).
+- **Admin Dashboard**: Panel kontrol bagi administrator untuk mengubah bobot bobot risiko (*weight*), memperbarui kamus leksikon kata positif/negatif, serta mengaktifkan/menonaktifkan pengguna.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠️ Arsitektur Sistem
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+Sistem ini mengikuti arsitektur modular yang rapi di atas framework Laravel:
 
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```mermaid
+graph TD
+    A[Cron Job / Artisan Command] -->|Trigger| B(RefreshDataCommand)
+    B --> C[API Integration Clients]
+    C -->|Fetch Weather| C1[OpenMeteoClient]
+    C -->|Fetch News| C2[GNewsClient]
+    C -->|Fetch Exchange Rates| C3[ExchangeRateClient]
+    C -->|Fetch Basic Data| C4[RESTCountriesClient]
+    C -->|Fetch Inflation| C5[WorldBankClient]
+    
+    B -->|Clean old data| D[(Database SQLite/MySQL)]
+    B -->|Evaluate News Sentiment| E[SentimentService]
+    B -->|Calculate Composite Risk| F[RiskScoringService]
+    
+    F -->|Write Risk Matrix| D
+    E -->|Write Sentiments| D
+    
+    G[Web Client / Blade UI] -->|Interacts| H[Controllers]
+    H -->|Read Data| D
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## 📊 Metodologi Perhitungan Risiko
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Indeks Risiko Komposit (0 - 100) dihitung secara tertimbang melalui kelas layanan [RiskScoringService](file:///d:/ProjekFullStack/global-scm/app/Services/RiskScoringService.php) berdasarkan 4 pilar utama:
 
-## Code of Conduct
+| Pilar Risiko | Deskripsi | Bobot Default | Cara Kerja Normalisasi |
+| :--- | :--- | :---: | :--- |
+| **Cuaca (*Weather*)** | Risiko badai & cuaca ekstrem lokal | **30%** | Diambil langsung dari nilai *storm_risk* (0-100) berdasarkan kecepatan angin, suhu, dan curah hujan real-time. |
+| **Berita (*News Sentiment*)** | Ketidakstabilan logistik & ekonomi | **40%** | Dihitung dari rasio artikel berita negatif terhadap total artikel berita logistik negara yang disinkronkan. |
+| **Inflasi (*Inflation*)** | Stabilitas makroekonomi | **20%** | Tingkat inflasi tahunan dipetakan secara non-linear: $\le 2\%$ dihargai 20 poin, $\le 10\%$ diskalakan linier hingga 70 poin, $> 10\%$ diskalakan hingga 100 poin. |
+| **Valuta Asing (*Currency*)** | Volatilitas nilai tukar mata uang lokal | **10%** | Dihitung dengan mengukur *Coefficient of Variation* (volatilitas historis) dari 30 hari terakhir terhadap USD. |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+> [!NOTE]
+> Bobot ini bersifat dinamis dan dapat disesuaikan kapan saja oleh Administrator melalui **Admin Dashboard**.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🔑 Kredensial Akun Default
 
-## License
+Setelah melakukan seeding database, Anda dapat login menggunakan salah satu akun default di bawah ini:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+* **Administrator Panel**:
+  - **Email**: `admin@gmail.com`
+  - **Password**: `password123`
+  - **Akses**: Penuh ke Dashboard, Watchlist, Ports, Weather, Analytics, dan Admin Panel.
+  
+* **Regular User**:
+  - **Email**: `user@gmail.com`
+  - **Password**: `password123`
+  - **Akses**: Terbatas pada visualisasi dashboard (tidak memiliki akses ke Admin Panel).
+
+---
+
+## 💻 Panduan Instalasi Lokal
+
+### 1. Prasyarat
+Pastikan mesin lokal Anda telah terinstal perangkat lunak berikut:
+- PHP $\ge$ 8.3
+- Composer
+- Node.js (v18 atau lebih baru) & NPM
+- SQLite / MySQL 8
+
+### 2. Kloning Repositori
+```bash
+git clone https://github.com/Khairul122/global-scm.git
+cd global-scm
+```
+
+### 3. Setup Lingkungan & Dependensi
+Gunakan script otomatisasi setup yang sudah disediakan di `composer.json` untuk menginstal dependensi PHP & JS, menyalin konfigurasi environment, menggenerasi key, dan melakukan migrasi database:
+
+```bash
+composer run setup
+```
+
+### 4. Konfigurasi Environment (`.env`)
+Buka file `.env` di editor Anda dan sesuaikan konfigurasi koneksi database Anda. 
+
+Jika Anda ingin mengaktifkan data berita real-time dan valuta asing terbaru, Anda perlu mendaftar dan menambahkan API Key gratis berikut:
+```env
+# GNews (https://gnews.io) - free tier ~100 req/day
+GNEWS_API_KEY=your_gnews_api_key_here
+
+# ExchangeRate-API (https://www.exchangerate-api.com)
+EXCHANGERATE_API_KEY=your_exchangerate_api_key_here
+```
+*Jika dikosongkan, aplikasi akan secara otomatis beralih ke mode offline/mock data sehingga aplikasi tetap berjalan lancar.*
+
+### 5. Seeding Data Awal
+Untuk mengisi database Anda dengan 20 negara default, data pelabuhan, bobot risiko awal, dan daftar kata leksikon sentimen dasar, jalankan:
+```bash
+php artisan db:seed
+```
+
+### 6. Sinkronisasi Data & Perhitungan Risiko
+Untuk mengisi data cuaca, nilai tukar mata uang, berita terkini, dan menghitung indeks risiko negara untuk pertama kalinya, jalankan Artisan command kustom berikut:
+```bash
+php artisan app:refresh-data
+```
+> [!TIP]
+> Di lingkungan produksi, daftarkan command `app:refresh-data` ke dalam Laravel Scheduler (`routes/console.php`) agar berjalan otomatis secara berkala (misal: setiap jam atau harian).
+
+### 7. Jalankan Server Pengembangan
+Untuk menyalakan server lokal Laravel dan Vite secara bersamaan dalam mode *hot-reload*:
+```bash
+composer run dev
+```
+Buka tautan [http://localhost:8000](http://localhost:8000) di browser Anda.
+
+---
+
+## 📦 Panduan Rilis Aplikasi (Release / Production Build)
+
+Sebelum mengunggah aplikasi ke server produksi atau membuat bundel rilis, jalankan prosedur optimalisasi di bawah ini:
+
+### Menggunakan Script Otomatis
+Kami telah menyediakan script otomatisasi rilis untuk platform Linux/macOS dan Windows.
+
+* **Untuk Linux / macOS**:
+  ```bash
+  chmod +x release.sh
+  ./release.sh
+  ```
+* **Untuk Windows (PowerShell / Command Prompt)**:
+  ```cmd
+  release.bat
+  ```
+
+### Langkah Rilis Manual
+Jika Anda ingin melakukan rilis secara manual, jalankan perintah-perintah berikut secara berurutan:
+
+1. **Instal dependensi produksi tanpa development tools**:
+   ```bash
+   composer install --no-dev --optimize-autoloader
+   ```
+2. **Kompilasi aset frontend menggunakan Vite**:
+   ```bash
+   npm install --ignore-scripts
+   npm run build
+   ```
+3. **Jalankan migrasi database paksa**:
+   ```bash
+   php artisan migrate --force
+   ```
+4. **Cache konfigurasi Laravel untuk mempercepat respons server**:
+   ```bash
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   php artisan event:cache
+   ```
+5. **Restart Queue Worker** (Jika menggunakan queue runner produksi):
+   ```bash
+   php artisan queue:restart
+   ```
+
+---
+
+## 📂 Struktur Folder Penting
+
+- [`app/Integrations/`](file:///d:/ProjekFullStack/global-scm/app/Integrations): Integrasi klien HTTP terisolasi dengan API pihak ketiga.
+- [`app/Services/`](file:///d:/ProjekFullStack/global-scm/app/Services): Layanan inti perhitungan risiko komposit dan analisis sentimen berita.
+- [`app/Console/Commands/`](file:///d:/ProjekFullStack/global-scm/app/Console/Commands): Artisan command `app:refresh-data` untuk pembaruan data terjadwal.
+- [`app/Http/Controllers/`](file:///d:/ProjekFullStack/global-scm/app/Http/Controllers): Controller logika web dan API endpoints.
+- [`resources/views/`](file:///d:/ProjekFullStack/global-scm/resources/views): Blade templates yang mengimplementasikan visualisasi data berbasis Bootstrap 5 + custom CSS.
+- [`resources/css/app.css`](file:///d:/ProjekFullStack/global-scm/resources/css/app.css): Kustomisasi UI bertema premium, glassmorphism, indikator lencana risiko (*risk badge*), dan kerangka *skeleton loader*.
+- [`release.sh`](file:///d:/ProjekFullStack/global-scm/release.sh) / [`release.bat`](file:///d:/ProjekFullStack/global-scm/release.bat): Script deployment otomatis produksi.
+
+---
+
+## 📄 Lisensi
+Proyek ini dilisensikan di bawah Lisensi MIT. Detail selengkapnya dapat dibaca pada file [LICENSE](file:///d:/ProjekFullStack/global-scm/LICENSE).

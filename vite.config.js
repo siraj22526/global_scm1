@@ -9,7 +9,10 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
+                bunny('Fira Sans', {
+                    weights: [300, 400, 500, 600, 700],
+                }),
+                bunny('Fira Code', {
                     weights: [400, 500, 600],
                 }),
             ],
