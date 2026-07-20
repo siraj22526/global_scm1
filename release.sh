@@ -26,6 +26,7 @@ php artisan migrate --force
 
 # 5. Clear and Cache Configuration, Routes, Views, and Events
 echo "🧹 Optimizing and caching Laravel configurations..."
+php artisan storage:link
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache

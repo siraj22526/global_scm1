@@ -34,6 +34,7 @@ if %ERRORLEVEL% neq 0 (
 
 :: 4. Caching
 echo 🧹 Optimizing and caching Laravel configurations...
+call php artisan storage:link
 call php artisan config:cache
 call php artisan route:cache
 call php artisan view:cache
