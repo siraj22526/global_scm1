@@ -64,6 +64,7 @@ Route::middleware(['web'])->group(function () {
         Route::put('/ports/{id}', [AdminApiController::class, 'updatePort']);
         Route::delete('/ports/{id}', [AdminApiController::class, 'destroyPort']);
         Route::post('/ports/import', [AdminApiController::class, 'importPorts']);
+        Route::post('/ports/sync', [AdminApiController::class, 'syncPortsFromApi']);
 
         Route::post('/articles', [AdminApiController::class, 'storeArticle']);
         Route::put('/articles/{id}', [AdminApiController::class, 'updateArticle']);

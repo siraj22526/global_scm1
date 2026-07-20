@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'gnews' => [
+        'key' => env('GNEWS_API_KEY'),
+        // How long to stop calling GNews after a 429 (rate limit) response, in minutes.
+        'cooldown_minutes' => env('GNEWS_COOLDOWN_MINUTES', 60),
+    ],
+
 ];

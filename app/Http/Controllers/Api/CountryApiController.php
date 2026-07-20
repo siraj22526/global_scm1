@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Country;
+use App\Models\Currency;
 use App\Models\EconomicIndicator;
 use App\Models\WeatherSnapshot;
 use App\Integrations\RESTCountriesClient;
@@ -44,6 +45,34 @@ class CountryApiController extends ApiController
 
         $cached = true;
         $fetchedAt = now();
+
+        // 0. Ensure Country Profile is fresh via REST Countries API (Cache 30 days)
+        if ($country->updated_at->addDays(30)->isPast()) {
+            $cached = false;
+            $restCountries = new RESTCountriesClient();
+            $profile = $restCountries->getCountry($country->iso2);
+            if ($profile) {
+                $country->update([
+                    'name' => $profile['name'] ?: $country->name,
+                    'official_name' => $profile['official_name'] ?: $country->official_name,
+                    'capital' => $profile['capital'] ?: $country->capital,
+                    'region' => $profile['region'] ?: $country->region,
+                    'languages' => $profile['languages'] ?: $country->languages,
+                    'flag_url' => $profile['flag_url'] ?: $country->flag_url,
+                ]);
+
+                if ($profile['currency_code']) {
+                    Currency::updateOrCreate(
+                        ['country_id' => $country->id],
+                        [
+                            'code' => $profile['currency_code'],
+                            'name' => $profile['currency_name'],
+                            'symbol' => $profile['currency_symbol'],
+                        ]
+                    );
+                }
+            }
+        }
 
         // 1. Ensure Economic Indicators are loaded (Cache 7 days)
         $latestIndicator = EconomicIndicator::where('country_id', $country->id)->first();

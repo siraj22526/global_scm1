@@ -55,6 +55,18 @@
                     <button type="submit" class="btn-skeuo w-full">Unggah &amp; Proses Impor</button>
                 </form>
 
+                <div class="relative flex py-4 items-center">
+                    <div class="flex-grow border-t border-border"></div>
+                    <span class="flex-shrink mx-4 text-xs text-muted-foreground uppercase font-semibold">Atau</span>
+                    <div class="flex-grow border-t border-border"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <h6 class="text-sm font-semibold text-foreground"><i class="fa-solid fa-cloud-arrow-down mr-1 text-primary"></i> Sinkronisasi via API WPI</h6>
+                    <p class="text-xs text-muted-foreground">Tarik data pelabuhan dunia secara otomatis dari repositori data WPI eksternal untuk seluruh negara yang terdaftar di sistem.</p>
+                    <button type="button" id="btnSyncPorts" class="btn-skeuo-outline w-full text-primary hover:text-white hover:bg-primary"><i class="fa-solid fa-rotate mr-1"></i> Sinkronkan dari API WPI</button>
+                </div>
+
                 <div id="importLoading" class="hidden text-center py-3 mt-2">
                     <div class="spinner spinner-sm text-primary inline-block mr-2"></div>
                     <span class="text-sm text-muted-foreground">Memproses data... Harap tunggu</span>
@@ -149,6 +161,7 @@
         document.getElementById('weightsForm').addEventListener('submit', handleWeightsUpdate);
         document.getElementById('lexiconForm').addEventListener('submit', handleLexiconStore);
         document.getElementById('portsImportForm').addEventListener('submit', handlePortsImport);
+        document.getElementById('btnSyncPorts').addEventListener('click', handlePortsSync);
     });
 
     // 1. Load Users
@@ -265,6 +278,36 @@
             document.getElementById('importLoading').classList.add('hidden');
             report.innerHTML = `<div class="bg-danger/10 text-danger border border-danger/25 rounded-xl p-3"><strong>Gagal Impor:</strong><br>${err.message}</div>`;
             showToast(err.message || 'Gagal memproses file.', 'error');
+        }
+    }
+
+    // 2b. Sync Ports from API
+    async function handlePortsSync() {
+        document.getElementById('importLoading').classList.remove('hidden');
+        const report = document.getElementById('importReport');
+        report.innerHTML = '<p class="text-info">Menghubungi API WPI dan memproses sinkronisasi pelabuhan...</p>';
+
+        try {
+            const res = await apiFetch('/api/admin/ports/sync', {
+                method: 'POST'
+            });
+
+            document.getElementById('importLoading').classList.add('hidden');
+            if (res.success) {
+                showToast(res.meta?.message || 'Sinkronisasi pelabuhan selesai.');
+                report.innerHTML = `
+                    <div class="bg-success/10 text-success border border-success/25 rounded-xl p-3">
+                        <strong>Sinkronisasi Sukses!</strong><br>
+                        - Berhasil diimpor/diperbarui: ${res.data.imported} pelabuhan<br>
+                        - Gagal/Dilewati: ${res.data.failed} pelabuhan
+                    </div>
+                `;
+            }
+        } catch (err) {
+            if (err.cancelled) return;
+            document.getElementById('importLoading').classList.add('hidden');
+            report.innerHTML = `<div class="bg-danger/10 text-danger border border-danger/25 rounded-xl p-3"><strong>Gagal Sinkronisasi:</strong><br>${err.message}</div>`;
+            showToast(err.message || 'Gagal sinkronisasi data.', 'error');
         }
     }
 

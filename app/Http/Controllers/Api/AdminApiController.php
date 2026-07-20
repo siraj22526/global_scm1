@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use App\Integrations\WorldPortIndexClient;
 
 class AdminApiController extends ApiController
 {
@@ -411,5 +412,74 @@ class AdminApiController extends ApiController
         }
 
         return $this->sendResponse(RiskWeight::all(), 'Bobot skor risiko berhasil diperbarui.');
+    }
+
+    /**
+     * POST /api/admin/ports/sync
+     */
+    public function syncPortsFromApi()
+    {
+        $client = new WorldPortIndexClient();
+        $portsData = $client->getPorts();
+
+        if (empty($portsData)) {
+            return $this->sendError('API_FETCH_FAILED', 'Gagal mengambil data pelabuhan dari API WPI.', 502);
+        }
+
+        // Fetch all active countries from DB
+        $countries = Country::all()->keyBy(function ($c) {
+            return strtolower($c->name);
+        });
+
+        $imported = 0;
+        $failed = 0;
+
+        DB::beginTransaction();
+        try {
+            foreach ($portsData as $item) {
+                $portCountry = $item['country'] ?? '';
+                $countryKey = strtolower(trim($portCountry));
+
+                if (!$countries->has($countryKey)) {
+                    continue; // Skip countries not present in database
+                }
+
+                $country = $countries->get($countryKey);
+                $pName = $item['wpi_port_name'] ?? '';
+                $pLat = $item['latitude'] ?? null;
+                $pLng = $item['longitude'] ?? null;
+                $pWpi = $item['wpi_port_id'] ?? null;
+                $pSize = $item['port_size'] ?? null;
+
+                if (empty($pName) || $pLat === null || $pLng === null) {
+                    $failed++;
+                    continue;
+                }
+
+                Port::updateOrCreate(
+                    [
+                        'country_id' => $country->id,
+                        'name' => trim($pName)
+                    ],
+                    [
+                        'wpi_code' => $pWpi ? (string) $pWpi : null,
+                        'latitude' => (float) $pLat,
+                        'longitude' => (float) $pLng,
+                        'harbor_size' => $pSize ? trim($pSize) : null
+                    ]
+                );
+
+                $imported++;
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendError('SYNC_EXCEPTION', 'Terjadi kesalahan saat menyimpan data pelabuhan: ' . $e->getMessage(), 500);
+        }
+
+        return $this->sendResponse([
+            'imported' => $imported,
+            'failed' => $failed
+        ], "Sinkronisasi selesai: {$imported} pelabuhan berhasil diimpor.");
     }
 }

@@ -120,23 +120,32 @@ GNEWS_API_KEY=your_gnews_api_key_here
 # ExchangeRate-API (https://www.exchangerate-api.com)
 EXCHANGERATE_API_KEY=your_exchangerate_api_key_here
 ```
-*Jika dikosongkan, aplikasi akan secara otomatis beralih ke mode offline/mock data sehingga aplikasi tetap berjalan lancar.*
-
 ### 5. Seeding Data Awal
-Untuk mengisi database Anda dengan 20 negara default, data pelabuhan, bobot risiko awal, dan daftar kata leksikon sentimen dasar, jalankan:
+Untuk mengisi database Anda dengan 20 negara default, bobot risiko awal, dan daftar kata leksikon sentimen dasar, jalankan:
 ```bash
 php artisan db:seed
 ```
 
 ### 6. Sinkronisasi Data & Perhitungan Risiko
-Untuk mengisi data cuaca, nilai tukar mata uang, berita terkini, dan menghitung indeks risiko negara untuk pertama kalinya, jalankan Artisan command kustom berikut:
+Untuk melakukan sinkronisasi data (nilai mata uang, cuaca, berita) serta menghitung indeks risiko komposit negara secara otomatis, jalankan Artisan command berikut:
 ```bash
 php artisan app:refresh-data
 ```
-> [!TIP]
-> Di lingkungan produksi, daftarkan command `app:refresh-data` ke dalam Laravel Scheduler (`routes/console.php`) agar berjalan otomatis secara berkala (misal: setiap jam atau harian).
 
-### 7. Jalankan Server Pengembangan
+> [!NOTE]
+> **Sinkronisasi Pelabuhan Otomatis (WPI API)**:
+> Saat menjalankan `app:refresh-data` untuk pertama kali, jika tabel pelabuhan terdeteksi kosong, sistem akan secara otomatis menghubungi API online WPI dan mengimpor lebih dari 1.900 data koordinat pelabuhan utama untuk 20 negara default secara instan.
+
+> [!WARNING]
+> **Kuota GNews API**:
+> Akun gratis GNews membatasi permintaan maksimal **100 request/hari**. Karena command `app:refresh-data` menarik berita dalam 4 kategori untuk seluruh 20 negara (total 80 request), satu eksekusi penuh dapat menghabiskan kuota harian Anda. Jika kuota habis, halaman berita akan menampilkan pesan kosong dengan informasi konfigurasi key. Anda dapat menghemat kuota dengan membatasi kategori penarikan berita di kelas console command jika diperlukan.
+
+### 7. Pengelolaan Pelabuhan via Admin Panel
+Selain auto-sync via API di atas, Administrator dapat mengelola data pelabuhan secara mandiri melalui menu **Admin -> Pelabuhan**:
+- **Sinkronisasi dari API WPI**: Klik tombol *Sinkronkan dari API WPI* untuk memperbarui data pelabuhan secara massal dari API eksternal secara asinkron.
+- **Unggah CSV Manual**: Jika ingin mengimpor dataset kustom, Anda dapat mengunggah file CSV dengan header kolom minimal `name`, `latitude`, `longitude`, dan `country_code` (kode negara ISO, e.g., `ID`, `US`).
+
+### 8. Jalankan Server Pengembangan
 Untuk menyalakan server lokal Laravel dan Vite secara bersamaan dalam mode *hot-reload*:
 ```bash
 composer run dev

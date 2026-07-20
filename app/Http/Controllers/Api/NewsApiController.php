@@ -26,19 +26,23 @@ class NewsApiController extends ApiController
 
         $countryId = $country ? $country->id : null;
 
-        // Check cache in database (stale after 1 hour)
-        $oneHourAgo = now()->subHour();
+        // Check cache in database. TTL is intentionally longer than the old 1 hour
+        // to avoid burning through GNews' free-tier daily quota with on-demand,
+        // per-country fetches on top of the hourly global refresh job.
+        $staleAfter = now()->subMinutes((int) config('services.gnews.cooldown_minutes', 60) * 4);
         $cacheQuery = NewsCache::where('category', $category)
             ->where('country_id', $countryId);
 
         $cachedArticlesCount = $cacheQuery->count();
         $latestArticle = $cacheQuery->orderBy('created_at', 'desc')->first();
 
-        // If missing or stale, fetch from client
-        if ($cachedArticlesCount === 0 || ($latestArticle && $latestArticle->created_at->isBefore($oneHourAgo))) {
+        // If missing or stale, fetch from client. When GNews is unavailable (rate
+        // limited or erroring), getNews() returns [] and the block below is a
+        // no-op, so whatever is already in news_cache keeps being served as-is.
+        if ($cachedArticlesCount === 0 || ($latestArticle && $latestArticle->created_at->isBefore($staleAfter))) {
             $gnews = new GNewsClient();
             $sentimentService = new SentimentService();
-            $fetchedNews = $gnews->getNews($category, $country ? $country->iso2 : null);
+            $fetchedNews = $gnews->getNews($category, $country ? $country->name : null);
 
             if (!empty($fetchedNews)) {
                 // Delete old cache for this category & country to avoid piling up
