@@ -31,13 +31,3 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin', [DashboardController::class, 'admin'])->name('admin');
 });
 
-// Temporary Route to Run Database Migration (Delete this after successful migration!)
-Route::get('/run-migration-synf', function () {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        return '<h3>Migration Status: Success</h3><pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
-    } catch (\Exception $e) {
-        return '<h3>Migration Status: Failed</h3><pre>' . $e->getMessage() . '</pre>';
-    }
-});
-
