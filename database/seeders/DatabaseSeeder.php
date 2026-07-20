@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@gmail.com'],
             [
                 'name' => 'SCM Administrator',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('admin12345'),
                 'role' => 'admin',
                 'is_active' => true,
             ]
